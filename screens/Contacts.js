@@ -10,6 +10,10 @@ import ContactListItem from "../components/ContactListItem";
 import { fetchContacts } from "../utils/api";
 
 export default class Contacts extends React.Component {
+  static navigationOptions = {
+    title: "Contacts"
+  };
+
   state = {
     contacts: [],
     loading: true,
