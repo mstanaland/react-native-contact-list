@@ -6,13 +6,28 @@ import {
   FlatList,
   ActivityIndicator
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+
 import ContactListItem from "../components/ContactListItem";
 import { fetchContacts } from "../utils/api";
+import colors from "../utils/colors";
 
 export default class Contacts extends React.Component {
-  static navigationOptions = {
-    title: "Contacts"
-  };
+  static navigationOptions = ({ navigation }) => (
+    {
+      title: "Contacts",
+      // headerLeft: (
+      //   <MaterialIcons
+      //     name="menu"
+      //     size={24}
+      //     style={{ color: colors.black, marginLeft: 10 }}
+      //     onPress={() => navigation.navigate("DrawerToggle")}
+      //   />
+      // )
+    }
+  );
+
+
 
   state = {
     contacts: [],

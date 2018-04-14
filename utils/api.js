@@ -14,7 +14,7 @@ const mapContact = contact => {
     phone,
     cell,
     email,
-    favorite: Math.random() >= 0.5, // randomly generate favorite contacts
+    favorite: Math.random() >= 0.75, // randomly generate favorite contacts
   };
 };
 
