@@ -4,31 +4,29 @@ import {
   Text,
   View,
   FlatList,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+// import { MaterialIcons } from "@expo/vector-icons";
+// import colors from "../utils/colors";
 
 import ContactListItem from "../components/ContactListItem";
 import { fetchContacts } from "../utils/api";
-import colors from "../utils/colors";
+import getURLParams from "../utils/getURLParams";
 import store from "../store";
 
 export default class Contacts extends React.Component {
-  static navigationOptions = ({ navigation }) => (
-    {
-      title: "Contacts",
-      // headerLeft: (
-      //   <MaterialIcons
-      //     name="menu"
-      //     size={24}
-      //     style={{ color: colors.black, marginLeft: 10 }}
-      //     onPress={() => navigation.navigate("DrawerToggle")}
-      //   />
-      // )
-    }
-  );
-
-
+  static navigationOptions = ({ navigation }) => ({
+    title: "Contacts"
+    // headerLeft: (
+    //   <MaterialIcons
+    //     name="menu"
+    //     size={24}
+    //     style={{ color: colors.black, marginLeft: 10 }}
+    //     onPress={() => navigation.navigate("DrawerToggle")}
+    //   />
+    // )
+  });
 
   state = {
     contacts: store.getState().contacts,
@@ -37,21 +35,47 @@ export default class Contacts extends React.Component {
   };
 
   async componentDidMount() {
-    this.unsubscribe = store.onChange(() => (
+    this.unsubscribe = store.onChange(() =>
       this.setState({
         contacts: store.getState().contacts,
         loading: store.getState().isFetchingContacts,
         error: store.getState().error
       })
-    ));
+    );
 
     const contacts = await fetchContacts();
 
     store.setState({ contacts, isFetchingContacts: false });
+
+    Linking.addEventListener("url", this.handleOpenUrl);
+
+    const url = await Linking.getInitialURL();
+    this.handleOpenUrl({ url });
   }
 
   componentWillUnmount() {
     this.unsubscribe();
+    Linking.removeEventLister("url", this.handleOpenUrl);
+  }
+
+  handleOpenUrl(event) {
+    const { navigation: { navigate } } = this.props;
+    const { url } = event;
+    const params = getURLParams(url);
+
+    if (params.name) {
+      const queriedContact = store
+        .getState()
+        .contacts.find(
+          (contact) =>
+            contact.name.split(" ")[0].toLowerCase() ===
+            params.name.toLowerCase()
+        );
+
+      if (queriedContact) {
+        navigate("Profile", { id: queriedContact.id });
+      }
+    }
   }
 
   renderContact = ({ item }) => {

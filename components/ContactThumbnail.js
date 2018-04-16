@@ -59,6 +59,7 @@ ContactThumbnail.defaultProps = {
   phone: '',
   textColor: 'white',
   onPress: null,
+  avatar: "null"
 };
 
 const styles = StyleSheet.create({
