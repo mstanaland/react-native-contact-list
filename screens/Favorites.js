@@ -6,8 +6,9 @@ import {
   FlatList,
   ActivityIndicator
 } from "react-native";
-
+import store from "../store";
 import { fetchContacts } from "../utils/api";
+
 import ContactThumbnail from "../components/ContactThumbnail";
 
 export default class Favorites extends React.Component {
@@ -16,26 +17,34 @@ export default class Favorites extends React.Component {
   };
 
   state = {
-    contacts: [],
-    loading: true,
-    error: false
+    contacts: store.getState().contacts,
+    loading: store.getState().isFetchingContacts,
+    error: store.getState().error
   };
 
   async componentDidMount() {
-    try {
-      const contacts = await fetchContacts();
+    const { contacts } = this.state;
 
+    this.unsubscribe = store.onChange(() =>
       this.setState({
-        contacts,
-        loading: false,
-        error: false
-      });
-    } catch (e) {
-      this.setState({
-        loading: false,
-        error: true
-      });
+        contacts: store.getState().contacts,
+        loading: store.getState().isFetching,
+        error: store.getState().error
+      })
+    );
+
+    if (contacts.length === 0) {
+      const fetchedContacts = await fetchContacts();
+
+      store.setState({
+        consts: fetchedContacts,
+        isFetchingContacts: false }
+      );
     }
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   renderFavoriteThumbnail = ({ item }) => {
@@ -58,15 +67,16 @@ export default class Favorites extends React.Component {
       <View style={styles.container}>
         {loading && <ActivityIndicator size="large" />}
         {error && <Text>An error occured</Text>}
-        {!loading && !error && (
-          <FlatList
-            data={favorites}
-            keyExtractor={(data) => data.phone}
-            numColumns={3}
-            contentContainerStyle={styles.list}
-            renderItem={this.renderFavoriteThumbnail}
-          />
-        )}
+        {!loading &&
+          !error && (
+            <FlatList
+              data={favorites}
+              keyExtractor={(data) => data.phone}
+              numColumns={3}
+              contentContainerStyle={styles.list}
+              renderItem={this.renderFavoriteThumbnail}
+            />
+          )}
       </View>
     );
   }
@@ -79,6 +89,6 @@ const styles = StyleSheet.create({
     flex: 1
   },
   list: {
-    alignItems: "center",
+    alignItems: "center"
   }
 });

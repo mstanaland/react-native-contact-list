@@ -6,6 +6,7 @@ import ContactThumbnail from "../components/ContactThumbnail";
 
 import colors from "../utils/colors";
 import { fetchUserContact } from "../utils/api";
+import store from "../store";
 
 export default class User extends React.Component {
   static navigationOptions = ({ navigation }) => {
@@ -27,26 +28,30 @@ export default class User extends React.Component {
   }
 
   state = {
-    user: [],
-    loading: true,
-    error: false
+    user: store.getState().user,
+    loading: store.getState().isFetchingContacts,
+    error: store.getState().error
   };
 
   async componentDidMount() {
-    try {
-      const user = await fetchUserContact();
+    this.unsubscribe = store.onChange(() => (
+      this.setState({
+        user: store.getState().user,
+        loading: store.getState().loading,
+        error: store.getState().error
+      })
+    ));
 
-      this.setState({
-        user,
-        loading: false,
-        error: false
-      });
-    } catch (e) {
-      this.setState({
-        loading: false,
-        error: true
-      });
-    }
+    const user = await fetchUserContact();
+
+    store.setState({
+      user,
+      isFetchingUser: false}
+    );
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe();
   }
 
   render() {
